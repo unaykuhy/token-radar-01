@@ -507,3 +507,10 @@ button { cursor: pointer; }
 .radar-sweep-2 { fill: var(--accent); opacity: 0.10; }
 .radar-sweep-3 { fill: var(--accent); opacity: 0.04; }
 
+
+.radar-view .radar-2col{display:flex;gap:14px}
+.radar-view .radar-left{flex:1;min-width:0;display:flex;align-items:center;justify-content:center}
+.radar-view .radar-right{flex:0 0 460px;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:space-between}
+.radar-view h3{font-size:12px;margin:4px 0 0}
+.radar-view .radar-right .radar-cat-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:0}
+.radar-view .radar-2col svg{height:min(870px,calc(100vh - 210px))}

@@ -129,7 +129,7 @@
       svg += '<text x="' + bx + '" y="' + by + '" class="radar-bearing" text-anchor="middle">' + bearing + '</text>';
     }
     var combined = S < 1000;
-    if (!combined) {
+    if (false) {
       var diag = 0.70710678;
       svg += '<text x="' + r1(CX - r500 * diag) + '" y="' + r1(CY + r500 * diag) + '" text-anchor="middle" class="ring-label">$500M</text>';
       svg += '<text x="' + r1(CX - r100 * diag) + '" y="' + r1(CY + r100 * diag) + '" text-anchor="middle" class="ring-label">$100M</text>';
@@ -145,7 +145,7 @@
       svg += '<rect x="' + r1(x - hw) + '" y="' + r1(y - hw) + '" width="' + r1(2 * hw) + '" height="' + r1(2 * hw) + '" class="' + cls + '"/>';
       svg += '<circle cx="' + x + '" cy="' + y + '" r="1.5" fill="var(--accent)"/>';
     });
-    var maxLabels = combined ? 5 : 20;
+    var maxLabels = combined ? 5 : 12;
     var placed = [];
     var placedCount = 0;
     var centerLabelW = 18, centerLabelH = 11;
@@ -180,15 +180,17 @@
     });
     svg += '</svg>';
 
-    host.innerHTML = '<h2>Token radar</h2>' + svg +
-      '<p class="radar-legend">Distance from center = implied value (closer = larger). Angle = category. Rings: $1B center, $500M, $100M, $1M rim.</p>' +
-      '<div class="radar-cat-legend">' + cats.map(function(c, i) {
-        var a = (i * sector * 180 / Math.PI + sector * 180 / Math.PI / 2) % 360;
-        return '<span class="cat-item"<b>' + esc(c) + '</b> <span class="cat-angle">~' + r1(a) + '\u00b0</span></span>';
-      }).join('') + '</div>' +
-      (combined ? '<div class="radar-top5">' + rows.slice(0,5).map(function(r, i) {
-        return '<div class="top5-row"><span class="top5-rank">#' + (i+1) + '</span><span class="top5-name">' + esc(r.name) + '</span><span class="top5-val">$' + (r.implied_value_usd/1e6).toFixed(1) + 'M</span></div>';
-      }).join('') + '</div>' : '');
+    var leg = '<p class="radar-legend">Distance from center = implied value (closer = larger). Angle = category. Rings: $1B center, $500M, $100M, $1M rim.</p>';
+    var cat = '<div class="radar-cat-legend">' + cats.map(function(c, i) {
+      var a = (i * sector * 180 / Math.PI + sector * 180 / Math.PI / 2) % 360;
+      return '<span class="cat-item"<b>' + esc(c) + '</b> <span class="cat-angle">~' + r1(a) + '\u00b0</span></span>';
+    }).join('') + '</div>';
+    var top = '<div class="radar-top5">' + rows.slice(0,5).map(function(r, i) {
+      return '<div class="top5-row"><span class="top5-rank">#' + (i+1) + '</span><span class="top5-name">' + esc(r.name) + '</span><span class="top5-val">$' + (r.implied_value_usd/1e6).toFixed(1) + 'M</span></div>';
+    }).join('') + '</div>';
+    host.innerHTML = combined
+      ? '<h2>Token radar</h2>' + svg + leg + cat + top
+      : '<h2>Token radar</h2><div class="radar-2col"><div class="radar-left">' + svg + '</div><div class="radar-right">' + leg + '<h3>Categories</h3>' + cat + '<h3>Top 5 on radar</h3>' + top + '</div></div>';
   }
 
   function drawNav() {
