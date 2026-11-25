@@ -1,5 +1,3 @@
-/* Token Radar — dark theme, green accent. No network, no external fonts. */
-
 :root {
   --canvas: #0d1117;
   --surface: #131a21;
@@ -34,7 +32,6 @@ button { cursor: pointer; }
 
 .shell { max-width: 1400px; margin: 0 auto; padding: 6px 14px 4px; }
 
-/* Header */
 .top {
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
   padding: 2px 2px 4px; border-bottom: 1px solid var(--border);
@@ -47,11 +44,10 @@ button { cursor: pointer; }
 .top-meta { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 12px; }
 .top-meta span { white-space: nowrap; }
 
-/* Generic strips */
+
 .strip { display: flex; flex-wrap: wrap; gap: 8px; padding: 3px 2px; align-items: stretch; }
 .risers { padding-top: 1px; }
 
-/* Stats: small fact cards */
 .stat {
   display: flex; flex-direction: column; justify-content: center; gap: 1px;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -61,7 +57,7 @@ button { cursor: pointer; }
 .stat-value { font-family: var(--font-num); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .stat-sub { color: var(--muted); font-size: 10px; }
 
-/* Risers chips */
+
 .riser {
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
@@ -70,7 +66,6 @@ button { cursor: pointer; }
 .riser b { color: var(--ink); font-weight: 600; }
 .riser .up { font-family: var(--font-num); }
 
-/* Tabs / views */
 .tabs { display: flex; gap: 6px; padding: 2px 2px 4px; border-bottom: 1px solid var(--border); }
 .tab {
   background: transparent; border: 1px solid var(--border); border-radius: 999px;
@@ -82,11 +77,9 @@ button { cursor: pointer; }
   color: var(--accent); font-weight: 600;
 }
 
-/* How-to line */
 .howto { color: var(--muted); font-size: 11px; padding: 3px 2px; }
 .howto b { color: var(--ink); font-weight: 600; }
 
-/* Filter row */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 2px 3px; }
 .chip {
   background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
@@ -104,7 +97,6 @@ button { cursor: pointer; }
 .filters input:focus { border-color: var(--accent); outline: none; }
 .filters label { color: var(--muted); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; }
 
-/* Board table */
 .board-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
 .board { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 .board thead th {
@@ -133,12 +125,10 @@ button { cursor: pointer; }
 .down { color: var(--negative); }
 .flat { color: var(--muted); }
 
-/* Medals for ranks 1-3 */
 .medal-1 { color: var(--gold); font-weight: 700; }
 .medal-2 { color: var(--silver); font-weight: 700; }
 .medal-3 { color: var(--bronze); font-weight: 700; }
 
-/* NEW badge: rows listed within ~90 days */
 .badge-new {
   display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 4px;
   background: rgba(34, 197, 94, 0.15); border: 1px solid var(--accent);
@@ -146,7 +136,6 @@ button { cursor: pointer; }
   vertical-align: 1px; line-height: 13px;
 }
 
-/* Risk label */
 .risk-label {
   display: inline-block; padding: 0 6px; border-radius: 4px;
   font-size: 10px; font-weight: 600; line-height: 16px; white-space: nowrap;
@@ -155,22 +144,18 @@ button { cursor: pointer; }
 .risk-mid { background: rgba(251, 191, 36, 0.12); color: var(--gold); }
 .risk-high { background: rgba(239, 68, 68, 0.12); color: var(--negative); }
 
-/* Watchlist dot */
 .wl-dot {
   display: inline-block; width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent); margin-right: 5px; vertical-align: 1px;
 }
 
-/* Spark bar: implied-value bar inside a cell */
 .spark { display: inline-block; height: 6px; border-radius: 3px; background: var(--accent); opacity: 0.55; vertical-align: middle; }
 
-/* Honest note */
 .honest {
   padding: 6px 10px; color: var(--muted); font-size: 11px; font-style: italic;
   border-top: 1px solid var(--border); background: var(--surface2);
 }
 
-/* Detail panel */
 .detail { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 12px 14px; }
 .detail[hidden], .live[hidden], .method[hidden] { display: none; }
 .detail h2 { font-size: 16px; margin-bottom: 2px; }
@@ -181,7 +166,7 @@ button { cursor: pointer; }
 .breakdown-row .br-label { width: 150px; flex: none; color: var(--muted); }
 .breakdown-row .br-mult { font-family: var(--font-num); width: 70px; text-align: right; flex: none; }
 .breakdown-row .br-bar { flex: 1; }
-/* One-candle TVL chart: open derived from the 7d change, close = current TVL. */
+
 .tvl-candle { margin: 8px 0 4px; }
 .tvl-candle-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .tvl-candle-top .tvl-title { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -217,7 +202,6 @@ button { cursor: pointer; }
 }
 .close-btn:hover { color: var(--ink); border-color: var(--accent-dim); }
 
-/* Methodology box */
 .method { margin-top: 12px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); background: var(--surface); padding: 10px 14px; }
 .method h2 { font-size: 13px; color: var(--accent); margin-bottom: 4px; }
 .method p, .method li { font-size: 12px; color: var(--muted); line-height: 1.5; }
@@ -239,7 +223,7 @@ button { cursor: pointer; }
   color: var(--muted); font-style: italic;
 }
 
-/* Live-token section */
+
 .live { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
 .live h2 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px; border-bottom: 1px solid var(--border); }
 .live table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -259,7 +243,7 @@ button { cursor: pointer; }
   .breakdown-row .br-label { width: 110px; }
 }
 
-/* Hero / command-center view (?view=hero): one 1440x1080 frame. */
+
 .hero .shell { max-width: 1400px; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); column-gap: 14px; }
 .hero .top { grid-column: 1 / -1; grid-row: 1; }
 .hero #stats { grid-column: 1 / -1; grid-row: 2; }
@@ -308,14 +292,14 @@ button { cursor: pointer; }
 .hero .detail .breakdown-row { padding: 1px 0; }
 .hero .detail .peers { margin-top: 6px; }
 
-/* Value-breakdown bars (were invisible: no track/fill styling). */
+
 .breakdown-row .br-bar { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
 .breakdown-row .br-fill { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
-/* Detail-only view (?view=detail&detail=<slug>): hide the board, show the panel at top. */
+
 .detail-view .board-wrap, .detail-view #tabs, .detail-view #howto, .detail-view #filters, .detail-view #method, .detail-view #live { display: none; }
 .detail-view #detail { margin-top: 0; }
 
-/* Methodology-only view (?view=method): hide the board, show the method box full-width and readable. */
+
 .method-view .board-wrap, .method-view #tabs, .method-view #howto, .method-view #filters,
 .method-view #detail { display: none; }
 .method-view #live { display: block; margin-top: 10px; }
@@ -324,7 +308,7 @@ button { cursor: pointer; }
 .method-view .cat-multiples { margin-top: 10px; }
 .method-view .method .cat-multiples, .method-view .method .method-honest { display: block; }
 
-/* Live-token-only view (?view=live): hide the board, show the live table full-width. */
+
 .live-view .board-wrap, .live-view #howto, .live-view #filters,
 .live-view #detail { display: none; }
 .live-view #live { margin-top: 10px; }
@@ -338,7 +322,7 @@ button { cursor: pointer; }
 .live-view .live tbody tr { height: 22px; }
 .live-view #method { padding: 6px 12px; }
 
-/* Live view: fixed table so long chain lists cannot push numeric columns off-screen. */
+
 .live-view .live-table { table-layout: fixed; }
 .live-view .live-table th:nth-child(1), .live-view .live-table td:nth-child(1) { width: 16%; }
 .live-view .live-table th:nth-child(2), .live-view .live-table td:nth-child(2) { width: 13%; }
@@ -347,14 +331,14 @@ button { cursor: pointer; }
 .live-view .live-table th:nth-child(5), .live-view .live-table td:nth-child(5) { width: 10%; }
 .live-view .live-table th:nth-child(6), .live-view .live-table td:nth-child(6) { width: 8%; }
 .live-view .live-table th:nth-child(7), .live-view .live-table td:nth-child(7) { width: 12%; }
-/* Live view: methodology box below the live table, multiples reflowed to 3 columns to fill the frame. */
+
 .live-view #method { display: block; margin-top: 10px; }
 .live-view #method .cat-multiples, .live-view #method .method-honest { display: block; }
 .live-view .multiples tbody { display: flex; flex-wrap: wrap; }
 .live-view .multiples tr { display: contents; }
 .live-view .multiples td { flex: 0 0 24%; line-height: 1.4; }
 
-/* Split view (?view=split&category=...&detail=...): filtered board + detail side by side, like hero. */
+
 .split-view .shell { max-width: 1400px; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); column-gap: 14px; }
 .split-view .top { grid-column: 1 / -1; grid-row: 1; }
 .split-view #stats { grid-column: 1 / -1; grid-row: 2; }
@@ -377,10 +361,10 @@ button { cursor: pointer; }
 .split-view .detail .steps ol { gap: 4px; }
 .split-view .detail .breakdown-row { font-size: 11px; }
 
-/* Hide the empty detail panel until a row is clicked. */
+
 .detail:empty { display: none; }
 
-/* Summary card below board in hero view */
+
 .board-wrap { display: flex; flex-direction: column; }
 .board-wrap .summary {
   flex: 1;
@@ -423,7 +407,7 @@ button { cursor: pointer; }
   margin-top: 2px;
 }
 
-/* Views nav: same look as .tabs */
+
 .views { display: flex; gap: 6px; padding: 2px 2px 4px; border-bottom: 1px solid var(--border); }
 .views button {
   background: transparent; border: 1px solid var(--border); border-radius: 999px;
@@ -435,28 +419,28 @@ button { cursor: pointer; }
   color: var(--accent); font-weight: 600;
 }
 
-/* Hide views nav in all existing views */
+
 .hero #views, .split-view #views, .live-view #views, .method-view #views, .detail-view #views { display: none; }
 
-/* Hide new sections by default */
+
 #chart, #radar { display: none; }
 
-/* Chart view: hide board UI, show chart */
+
 .chart-view .board-wrap, .chart-view #filters, .chart-view #howto, .chart-view #tabs, .chart-view #detail, .chart-view #method, .chart-view #live { display: none; }
 .chart-view #chart { display: block; }
 
-/* Radar view: hide board UI, show radar */
+
 .radar-view .board-wrap, .radar-view #filters, .radar-view #howto, .radar-view #tabs, .radar-view #detail, .radar-view #method, .radar-view #live { display: none; }
 .radar-view #radar { display: block; }
 
-/* Chart/Radar panel style like .detail */
+
 .chartview, .radarview { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 12px 14px; }
 .chartview h2, .radarview h2 { font-size: 15px; margin-bottom: 2px; }
 .chartview .chart-note, .radarview .radar-legend { color: var(--muted); font-size: 11px; margin-top: 8px; }
 .chartview svg, .radarview svg { width: 100%; height: auto; display: block; }
 .radarview svg { height: min(720px, calc(100vh - 300px)); width: auto; max-width: 100%; margin: 0 auto; }
 
-/* Combined view (?view=combined): chart left, radar right, one 1440x1080 frame. */
+
 .combined-view .shell { max-width: 1400px; display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); column-gap: 12px; }
 .combined-view .top, .combined-view #stats, .combined-view #risers, .combined-view #views { grid-column: 1 / -1; }
 .combined-view .top { grid-row: 1; }
@@ -469,7 +453,7 @@ button { cursor: pointer; }
 .combined-view .chartview, .combined-view .radarview { margin-top: 8px; padding: 8px 10px; }
 .combined-view .chartview svg, .combined-view .radarview svg { width: 100%; height: auto; }
 
-/* Chart SVG classes */
+
 .axis { stroke: var(--border); stroke-width: 1.5; }
 .grid { stroke: var(--border); stroke-width: 0.5; opacity: 0.5; }
 .axis-label { font-size: 11px; fill: var(--muted); font-family: var(--font-num); }
@@ -484,7 +468,7 @@ button { cursor: pointer; }
 .chart-name { font-size: 12px; fill: var(--ink); font-weight: 500; }
 .chart-note { color: var(--muted); font-size: 11px; }
 
-/* Radar SVG classes - marine radar phosphor look */
+
 .radarscope { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect fill='%2322c55e' fill-opacity='0.03' width='8' height='8'/%3E%3C/svg%3E"); }
 .radar-rim, .radar-ring { fill: none; stroke: var(--accent); stroke-width: 1; opacity: 0.6; }
 .radar-wedge { fill: var(--accent); opacity: 0.08; }
@@ -497,11 +481,28 @@ button { cursor: pointer; }
 .radar-name { font-size: 11px; fill: var(--ink); font-family: var(--font-body); }
 .radar-legend { color: var(--muted); font-size: 11px; }
 
-/* Bearing spokes and numbers */
+
+.radar-cat-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 10px; }
+.cat-item { display: inline-flex; align-items: center; gap: 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; color: var(--muted); }
+.cat-item b { color: var(--ink); font-weight: 500; }
+.cat-angle { font-family: var(--font-num); color: var(--accent); opacity: 0.8; }
+
+
+.radar-top5 { margin-top: 8px; font-size: 10.5px; }
+.top5-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.top5-rank { font-family: var(--font-num); font-weight: 600; color: var(--accent); width: 28px; }
+.top5-name { flex: 1; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top5-val { font-family: var(--font-num); color: var(--muted); white-space: nowrap; }
+
+
+.combined-view .radarview { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 520px; }
+.combined-view .radarview > svg { margin: 0 auto; }
+
+
 .radar-spoke { stroke: var(--accent); stroke-width: 0.5; opacity: 0.35; }
 .radar-bearing { font-size: 10px; fill: var(--accent); font-family: var(--font-num); text-anchor: middle; }
 
-/* Sweep fade wedges */
+
 .radar-sweep-1 { fill: var(--accent); opacity: 0.22; }
 .radar-sweep-2 { fill: var(--accent); opacity: 0.10; }
 .radar-sweep-3 { fill: var(--accent); opacity: 0.04; }
