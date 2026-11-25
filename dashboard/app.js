@@ -8,6 +8,7 @@
   var PARAM_CATEGORY = PARAMS.get('category') || '';
   var PARAM_DETAIL = PARAMS.get('detail') || '';
   var DETAIL_VIEW = PARAMS.get('view') === 'detail';
+  var METHOD_VIEW = PARAMS.get('view') === 'method';
   if (PARAM_CATEGORY) S.category = PARAM_CATEGORY;
 
   function esc(s) {
@@ -61,10 +62,50 @@
     }
   }
 
+  var HONEST_TEXT = 'Implied value is an estimate from 14 Nov 2026 data, not a promise a token will launch.';
+
+  function categoryMultiplesHtml() {
+    var seen = {}, cats = [];
+    rows.forEach(function (r) {
+      var c = r.category || 'Uncategorized';
+      if (!(c in seen)) { seen[c] = r.category_multiple; cats.push(c); }
+    });
+    var freq = {};
+    cats.forEach(function (c) { var k = String(seen[c]); freq[k] = (freq[k] || 0) + 1; });
+    var globalKey = null, gmax = -1;
+    Object.keys(freq).forEach(function (k) {
+      if (freq[k] > gmax) { gmax = freq[k]; globalKey = k; }
+    });
+    var list = cats.map(function (c) {
+      return { name: c, mult: seen[c], global: String(seen[c]) === globalKey };
+    }).sort(function (a, b) {
+      return b.mult - a.mult || a.name.localeCompare(b.name);
+    });
+    function fmt(v) { return '\u00d7' + Number(v).toFixed(2).replace('.', ','); }
+    var half = Math.ceil(list.length / 2);
+    var html = '<div class="cat-multiples"><h3>Category multiples used by the board</h3><table class="multiples"><tbody>';
+    for (var i = 0; i < half; i++) {
+      html += '<tr>';
+      for (var col = 0; col < 2; col++) {
+        var item = list[col === 0 ? i : i + half];
+        if (!item) { html += '<td></td>'; continue; }
+        html += '<td><span class="cat-name">' + esc(item.name) + '</span> ' +
+          '<span class="cat-mult">' + fmt(item.mult) + '</span>' +
+          (item.global ? ' <span class="global-tag">global median</span>' : '') + '</td>';
+      }
+      html += '</tr>';
+    }
+    return html + '</tbody></table></div>';
+  }
+
   function renderHowto() {
     $('howto').textContent = 'Click a row for detail. Click a header to sort.';
-    $('honest').textContent = 'Implied value is an estimate from 14 Nov 2026 data, not a promise a token will launch.';
-    $('method').innerHTML = '<p>Implied value = TVL × category multiple (median mcap/TVL of live-token peers in the same category; categories with fewer than 3 live-token peers use the global median) × growth (7-day change, clamped ±30%) × age (1 + 10% per year, max 2 years) × chains (1 + 5% per chain, max 4 chains). Airdrop value = 7% of implied value. The board ranks 200 protocols: 40 watchlist + 18 off-list (pre-token, at or above the $50M floor, left out by the watchlist rule) + 142 below the floor.</p>';
+    $('honest').textContent = HONEST_TEXT;
+    $('method').innerHTML =
+      '<h2>Methodology</h2>' +
+      '<p class="method-formula">Implied value = TVL \u00d7 category multiple (median mcap/TVL of live-token peers in the same category; categories with fewer than 3 live-token peers use the global median) \u00d7 growth (7-day change, clamped \u00b130%) \u00d7 age (1 + 10% per year, max 2 years) \u00d7 chains (1 + 5% per chain, max 4 chains). Airdrop value = 7% of implied value. The board ranks 200 protocols: 40 watchlist + 18 off-list (pre-token, at or above the $50M floor, left out by the watchlist rule) + 142 below the floor.</p>' +
+      categoryMultiplesHtml() +
+      '<p class="method-honest">' + esc(HONEST_TEXT) + '</p>';
   }
 
   function renderFilters() {
@@ -138,9 +179,9 @@
       var rankCls = r.rank <= 3 ? ' medal-' + r.rank : '';
       tr.innerHTML =
         '<td class="num' + rankCls + '">' + esc(r.rank) + '</td>' +
-        '<td>' + esc(r.name) + (wl.has(r.slug) ? ' <span class="wl-dot" title="Watchlist"></span>' : '') +
+        '<td class="name">' + esc(r.name) + (wl.has(r.slug) ? ' <span class="wl-dot" title="Watchlist"></span>' : '') +
           (r.listed_at && r.listed_at >= '2026-01-01' ? ' <span class="badge-new">NEW</span>' : '') + '</td>' +
-        '<td>' + esc(r.category) + '</td>' +
+        '<td class="cat">' + esc(r.category) + '</td>' +
         '<td class="num">' + money(r.tvl_usd) + '</td>' +
         '<td class="num ' + changeCls + '">' + pct(r.change_7d) + '</td>' +
         '<td class="num">' + money(r.implied_value_usd) + '</td>' +
@@ -202,6 +243,9 @@
 
   if (DETAIL_VIEW) {
     document.body.classList.add('detail-view');
+  }
+  if (METHOD_VIEW) {
+    document.body.classList.add('method-view');
   }
   window.addEventListener('load', function () {
     if (!HERO && PARAM_DETAIL && typeof window.showDetail === 'function') window.showDetail(PARAM_DETAIL);

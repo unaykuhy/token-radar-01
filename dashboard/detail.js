@@ -56,6 +56,31 @@
         return '<button class="peer" data-slug="' + esc(p.slug) + '">' + esc(p.rank) + '. ' + esc(p.name) +
           ' <span class="num">' + money(p.implied_value_usd) + '</span></button>';
       }).join('');
+    var candleHtml;
+    if (r.change_7d != null && r.tvl_usd != null && (1 + r.change_7d / 100) !== 0) {
+      var open = r.tvl_usd / (1 + r.change_7d / 100);
+      var close = r.tvl_usd;
+      var hi = Math.max(open, close), lo = Math.min(open, close);
+      var up = close >= open;
+      var pad = 4, span = hi - lo;
+      var yOf = function (v) { return span > 0 ? pad + (1 - (v - lo) / span) * (40 - pad * 2) : 20; };
+      var topY = yOf(hi), botY = yOf(lo), bodyH = Math.max(3, botY - topY);
+      if (topY + bodyH > 40 - pad) topY = 40 - pad - bodyH;
+      candleHtml =
+        '<div class="tvl-candle">' +
+          '<div class="tvl-candle-top">' +
+            '<span class="tvl-title">TVL, past 7 days</span>' +
+            '<span class="tvl-candle-nums">open <b>' + money(open) + '</b> · close <b>' + money(close) + '</b></span>' +
+          '</div>' +
+          '<svg class="tvl-svg" viewBox="0 0 100 40" preserveAspectRatio="none" role="img" aria-label="TVL candle">' +
+            '<rect class="tvl-candle-body ' + (up ? 'up' : 'down') + '" x="42" y="' + topY.toFixed(2) +
+              '" width="16" height="' + bodyH.toFixed(2) + '" rx="1"></rect>' +
+          '</svg>' +
+          '<p class="tvl-candle-note">TVL, past 7 days — one candle: open = TVL 7 days ago, derived from the 7d change; close = TVL on 14 Nov 2026. No daily prices in the snapshot.</p>' +
+        '</div>';
+    } else {
+      candleHtml = '<div class="tvl-candle"><p class="tvl-candle-empty">No 7-day change on record, so no TVL candle.</p></div>';
+    }
     $('detail').innerHTML =
       '<button class="close-btn" title="Close">✕</button>' +
       '<h2><span class="num">' + esc(r.rank) + '</span> ' + esc(r.name) + '</h2>' +
@@ -65,6 +90,7 @@
         '<div><span class="big num">' + money(r.implied_value_usd) + '</span><span class="vlabel">implied value</span></div>' +
         '<div><span class="big num">' + money(r.airdrop_value_usd) + '</span><span class="vlabel">airdrop (7%)</span></div>' +
       '</div>' +
+      candleHtml +
       '<h3>Value breakdown</h3>' +
       factors.map(function (f) { return barRow(f[0], f[1], f[2], maxlog, f[3]); }).join('') +
       '<h3>Farm plan</h3>' +

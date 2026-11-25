@@ -108,6 +108,7 @@ export interface BoardRow {
   age_days: number | null;
   implied_value_usd: number;
   airdrop_value_usd: number;
+  starting_capital_usd: number;
   model: {
     category_multiple: number;
     growth_pct: number;
@@ -322,7 +323,7 @@ for (const p of offList) chosen.set(p.slug, p);
   const comps = compsOf(snapshot.protocols);
   const scored = [...chosen.values()].map((p) => ({ p, result: scoreProtocol(p, snapshot.as_of, comps, model) }));
   scored.sort((a, b) => b.result.implied - a.result.implied || (a.p.slug < b.p.slug ? -1 : a.p.slug > b.p.slug ? 1 : 0));
-  return scored.map((s, i) => ({
+  const rows: BoardRow[] = scored.map((s, i) => ({
     rank: i + 1,
     slug: s.p.slug,
     name: s.p.name,
@@ -347,7 +348,32 @@ for (const p of offList) chosen.set(p.slug, p);
       age_days: s.result.age,
     },
     farm_steps: farmSteps(s.p, s.result.age).map(stepText),
+    starting_capital_usd: 0,
   }));
+
+  // The starting capital each row's farm plan records, parsed from step 1's text; null when unparseable.
+  const parsed = rows.map((r) => capitalFromStep(r.farm_steps[0] ?? ''));
+  const byCategory = new Map<string, number[]>();
+  const allParsed: number[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const v = parsed[i];
+    if (v === null) continue;
+    allParsed.push(v);
+    const key = rows[i]!.category ?? '';
+    const peers = byCategory.get(key);
+    if (peers === undefined) byCategory.set(key, [v]);
+    else peers.push(v);
+  }
+  const globalFallback = Math.round(median(allParsed));
+  for (let i = 0; i < rows.length; i++) {
+    const v = parsed[i];
+    if (v !== null) rows[i]!.starting_capital_usd = v;
+    else {
+      const peers = byCategory.get(rows[i]!.category ?? '');
+      rows[i]!.starting_capital_usd = peers !== undefined && peers.length > 0 ? Math.round(median(peers)) : globalFallback;
+    }
+  }
+  return rows;
 }
 
 
@@ -527,6 +553,17 @@ export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   ];
 }
 
+/** The capital figure a farm plan's step 1 records: the dollars in parentheses before "capital". */
+const CAPITAL_IN_STEP = /\((\d[\d,]*) capital/;
+
+/** The whole-dollar capital a farm plan's step 1 text records, or null when it does not parse. */
+function capitalFromStep(step: string): number | null {
+  const m = CAPITAL_IN_STEP.exec(step);
+  if (m === null) return null;
+  const n = Number(m[1]!.replace(/,/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+
 /** The live-token protocols, by market cap, for the dashboard's Live token view. */
 export function liveRows(snapshot: Snapshot): LiveRow[] {
   return snapshot.protocols
@@ -564,7 +601,7 @@ export function radarRow(row: BoardRow): RadarRow {
     growth_multiplier: row.model.growth_multiplier,
     age_multiplier: row.model.age_multiplier,
     chain_multiplier: row.model.chain_multiplier,
-    starting_capital_usd: startingCapitalUsd(row.tvl_usd),
+    starting_capital_usd: row.starting_capital_usd,
     farm_steps: row.farm_steps.slice(),
   };
 }
