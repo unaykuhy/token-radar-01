@@ -27,10 +27,10 @@ async function takeScreenshots() {
   await page.screenshot({ path: '/home/hatch/workspace/token-radar-01-fresh/screenshots/2-live.png' });
   console.log('Shot 2 done');
   
-  // Shot 3: RWA filtered split view (?view=split&category=RWA&detail=onre)
-  await page.goto(baseUrl + '?view=split&category=RWA&detail=onre', { waitUntil: 'networkidle' });
+  // Shot 3: combined Chart + Token radar view (?view=combined)
+  await page.goto(baseUrl + '?view=combined', { waitUntil: 'networkidle' });
   await page.waitForTimeout(500);
-  await page.screenshot({ path: '/home/hatch/workspace/token-radar-01-fresh/screenshots/3-rwa.png' });
+  await page.screenshot({ path: '/home/hatch/workspace/token-radar-01-fresh/screenshots/3-combined.png' });
   console.log('Shot 3 done');
   
   // Shot 4: Methodology view (?view=method)
