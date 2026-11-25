@@ -401,6 +401,17 @@ function holdDaysFor(age: number | null): number {
 function categoryAction1(p: SnapshotProtocol, capital: number, chain: string, gas: number): string {
   const c = (p.category ?? '').toLowerCase();
   const name = p.name;
+  // Specific categories first (avoid substring false positives like "indexes" -> "dex", "collateral markets" -> "market")
+  if (c === 'indexes' || c.includes('index fund') || c.includes('index protocol')) return `Buy $${capital} of ${name}'s index token on ${chain} and hold it through at least one rebalance cycle.`;
+  if (c === 'otc marketplace' || c.includes('otc desk')) return `Execute a $${capital} OTC trade on ${name} (${chain}) using the RFQ system and settle on-chain.`;
+  if (c === 'collateral markets' || c === 'collateral market') return `Deposit $${capital} of ETH as collateral on ${name}, mint the protocol's stablecoin, and keep the position above the liquidation threshold.`;
+  if (c === 'farm' || c.includes('yield farm') && !c.includes('leveraged')) return `Deposit $${capital} of USDC into ${name}'s farming pool on ${chain}, stake the LP token, and keep the staked position.`;
+  if (c === 'liquidity manager' || c.includes('liquidity management')) return `Deposit $${capital} of USDC into ${name}'s managed vault on ${chain}, receive vault shares, and keep them through a full rebalance epoch.`;
+  if (c === 'anchor btc' || c.includes('anchor btc')) return `Deposit $${capital} of BTC into ${name}'s anchor vault on ${chain}, receive the yield-bearing receipt token, and hold it.`;
+  if (c === 'leveraged farming' || c.includes('leveraged farm')) return `Deposit $${capital} of USDC as collateral on ${name}, open a leveraged farming position (2-3x), and maintain the health factor above 1.3x.`;
+  if (c === 'crypto card issuer' || c.includes('crypto card')) return `Fund $${capital} of USDC to ${name}'s card account on ${chain}, make one card transaction, and keep the balance for the hold period.`;
+  if (c === 'dual-token stablecoin' || c.includes('dual token stable')) return `Mint $${capital} of ${name}'s dual-token stablecoin pair on ${chain} (both tokens), provide liquidity, and hold the LP position.`;
+  if (c === 'decentralized btc' || c.includes('decentralized btc') || c.includes('btc bridge') && !c.includes('canonical')) return `Deposit $${capital} of BTC into ${name}'s trust-minimized bridge on ${chain}, receive the synthetic BTC asset, and hold it.`;
   if (c.includes('risk curator') || c.includes('curator')) return `Deposit $${capital} into a ${name} vault on ${chain} and keep the vault shares for the full hold period.`;
   if (c.includes('onchain capital allocator') || c.includes('allocator')) return `Allocate $${capital} to a ${name} strategy on ${chain} and keep the allocation active.`;
   if (c.includes('rwa')) return `Mint $${capital} of ${name}'s yield-bearing RWA token on ${chain} and hold it in your wallet.`;
@@ -426,10 +437,22 @@ function categoryAction1(p: SnapshotProtocol, capital: number, chain: string, ga
   return `Deposit $${capital} of USDC into ${name} on ${chain} and keep the position open for the full hold period.`;
 }
 
-/** Category-specific action #2: a weekly or periodic action unique to this protocol type. */
+/*** Category-specific action #2: a weekly or periodic action unique to this protocol type. */
 function categoryAction2(p: SnapshotProtocol, capital: number, chain: string, gas: number): string {
   const c = (p.category ?? '').toLowerCase();
   const name = p.name;
+  const weeklyAmt = Math.max(10, Math.floor(capital * 0.1));
+  // Specific categories first (match categoryAction1 ordering)
+  if (c === 'indexes' || c.includes('index fund') || c.includes('index protocol')) return `Once per week, check ${name}'s index composition on ${chain} and verify your token reflects the current weights.`;
+  if (c === 'otc marketplace' || c.includes('otc desk')) return `Once per week, place one RFQ order of at least $${weeklyAmt} on ${name} (${chain}) and settle if filled.`;
+  if (c === 'collateral markets' || c === 'collateral market') return `Once per week, check your collateral ratio on ${name} and top up if it falls below 180%.`;
+  if (c === 'farm' || c.includes('yield farm') && !c.includes('leveraged')) return `Once per week, harvest ${name}'s farm rewards on ${chain}, compound them into the farming pool, and verify APY.`;
+  if (c === 'liquidity manager' || c.includes('liquidity management')) return `Once per week, check ${name}'s vault rebalance on ${chain}, confirm your shares reflect the new allocation, and claim any distributed fees.`;
+  if (c === 'anchor btc' || c.includes('anchor btc')) return `Once per week, verify ${name}'s BTC reserve proof on ${chain} and confirm your receipt token accrues yield.`;
+  if (c === 'leveraged farming' || c.includes('leveraged farm')) return `Once per week, check your leveraged position health factor on ${name}, repay debt or add collateral if below 1.5x, and harvest/compound rewards.`;
+  if (c === 'crypto card issuer' || c.includes('crypto card')) return `Once per week, make one $${weeklyAmt} card purchase through ${name} on ${chain} and confirm the on-chain settlement.`;
+  if (c === 'dual-token stablecoin' || c.includes('dual token stable')) return `Once per week, check both tokens' peg on ${name} (${chain}), harvest LP fees, and rebalance the pair if drift >2%.`;
+  if (c === 'decentralized btc' || c.includes('decentralized btc') || (c.includes('btc bridge') && !c.includes('canonical'))) return `Once per week, verify ${name}'s bridge proof on ${chain}, confirm synthetic BTC is 1:1 backed, and execute one wrap/unwrap of $${weeklyAmt}.`;
   if (c.includes('risk curator') || c.includes('curator')) return `Once per week, check ${name}'s vault performance dashboard and rebalance if the strategy allocation shifted >10%.`;
   if (c.includes('onchain capital allocator') || c.includes('allocator')) return `Once per week, review ${name}'s strategy weights on ${chain} and confirm your allocation matches the current target.`;
   if (c.includes('rwa')) return `Once per week, verify ${name}'s reserve attestation on ${chain} and confirm your yield tokens still accrue interest.`;
@@ -437,17 +460,17 @@ function categoryAction2(p: SnapshotProtocol, capital: number, chain: string, ga
   if (c.includes('dex') || c.includes('amm')) return `Once per week, harvest fees from ${name}'s LP position on ${chain} and compound them back into the pool.`;
   if (c.includes('basis trading') || c.includes('basis')) return `Once per week, confirm ${name}'s funding rate capture on ${chain} is positive and the delta hedge is balanced.`;
   if (c.includes('cdp') || c.includes('collateralized debt')) return `Once per week, check your CDP collateral ratio on ${name} and top up if it falls below 180%.`;
-  if (c.includes('bridge') && !c.includes('canonical')) return `Once per week, bridge $${Math.max(10, Math.floor(capital * 0.1))} of volume through ${name} on ${chain} to maintain active user status.`;
-  if (c.includes('canonical bridge')) return `Once per week, wrap or unwrap $${Math.max(10, Math.floor(capital * 0.1))} through ${name} on ${chain} to generate canonical bridge volume.`;
+  if (c.includes('bridge') && !c.includes('canonical')) return `Once per week, bridge $${weeklyAmt} of volume through ${name} on ${chain} to maintain active user status.`;
+  if (c.includes('canonical bridge')) return `Once per week, wrap or unwrap $${weeklyAmt} through ${name} on ${chain} to generate canonical bridge volume.`;
   if (c.includes('staking') && !c.includes('restak') && !c.includes('pool')) return `Once per week, claim staking rewards from ${name} on ${chain} and restake them to compound the yield.`;
   if (c.includes('restak')) return `Once per week, check ${name}'s restaking rewards on ${chain}, claim any available, and verify slash protection is active.`;
   if (c.includes('perpetual') || c.includes('derivative')) return `Once per week, adjust your ${name} perpetual position on ${chain} to maintain 2x leverage and pay funding if negative.`;
   if (c.includes('yield') && !c.includes('rwa') && !c.includes('lending')) return `Once per week, claim and compound ${name}'s yield rewards on ${chain} into the same strategy.`;
-  if (c.includes('prediction') || c.includes('market')) return `Once per week, place one new market position on ${name} with at least $${Math.max(10, Math.floor(capital * 0.1))} and hold to resolution.`;
+  if (c.includes('prediction') || c.includes('market')) return `Once per week, place one new market position on ${name} with at least $${weeklyAmt} and hold to resolution.`;
   if (c.includes('insurance')) return `Once per week, confirm ${name}'s cover policy on ${chain} is active and the protocol's solvency metrics are healthy.`;
-  if (c.includes('payment')) return `Once per week, send one $${Math.max(10, Math.floor(capital * 0.1))} payment through ${name} on ${chain} and verify on-chain settlement.`;
+  if (c.includes('payment')) return `Once per week, send one $${weeklyAmt} payment through ${name} on ${chain} and verify on-chain settlement.`;
   if (c.includes('chain') && !c.includes('canonical')) return `Once per week, execute at least 3 transactions on ${name} (${chain}) to maintain active wallet status.`;
-  if (c.includes('stablecoin wrapper') || c.includes('stable wrapper')) return `Once per week, check ${name}'s peg stability on ${chain} and redeem or mint $${Math.max(10, Math.floor(capital * 0.1))} if arb exists.`;
+  if (c.includes('stablecoin wrapper') || c.includes('stable wrapper')) return `Once per week, check ${name}'s peg stability on ${chain} and redeem or mint $${weeklyAmt} if arb exists.`;
   if (c.includes('collateral market') || c.includes('collateral')) return `Once per week, monitor ${name}'s collateral utilization on ${chain} and adjust your borrow if utilization exceeds 80%.`;
   if (c.includes('cedefi') || c.includes('cefi')) return `Once per week, verify ${name}'s CeDeFi yield source on ${chain} is reporting and withdraw/rotate if APY drops >50%.`;
   if (c.includes('governance incentive') || c.includes('governance')) return `Once per week, vote on any active ${name} governance proposal on ${chain} with your delegated tokens.`;
