@@ -44,7 +44,8 @@
     rows.forEach(function (r) { tvl += r.tvl_usd || 0; imp += r.implied_value_usd || 0; });
     $('stats').innerHTML = esc(rows.length) + ' protocols · ' + wl.size + ' watchlist · total TVL ' +
       money(tvl) + ' · total implied ' + money(imp);
-    var tops = rows.slice().sort(function (a, b) { return (b.change_7d || 0) - (a.change_7d || 0); }).slice(0, 3);
+    var tops = rows.filter(function (r) { return wl.has(r.slug); })
+      .sort(function (a, b) { return (b.change_7d || 0) - (a.change_7d || 0); }).slice(0, 3);
     $('risers').textContent = 'Fastest risers: ' + tops.map(function (r) {
       return r.name + ' ' + pct(r.change_7d);
     }).join(' · ');
