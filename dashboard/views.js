@@ -52,7 +52,7 @@
 
     var fy = r1(yOf(FLOOR));
     svg += '<line x1="' + L + '" y1="' + fy + '" x2="' + (W - RT) + '" y2="' + fy + '" class="floor"/>';
-    svg += '<text x="' + (L + 8) + '" y="' + (fy - 7) + '" class="floor-label">Floor $50M</text>';
+    svg += '<text x="' + (W - RT - 8) + '" y="' + (fy - 7) + '" text-anchor="end" class="floor-label">Floor $50M</text>';
 
     svg += '<path d="' + area + '" class="chart-area"/>';
     svg += '<path d="' + line + '" class="chart-line"/>';
