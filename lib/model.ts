@@ -10,14 +10,14 @@
 // comparable, live-token protocols with a TVL on record.
 //
 //   categoryMultiple = median(mcap_usd / tvl_usd) over protocols in the same category, when that category
-//                      has at least CATEGORY_MIN_PEERS such protocols; otherwise the global median over
-//                      every protocol with a market cap and a TVL. A null category always uses the global
-//                      median.
+//                      has at least 3 such protocols; otherwise (fewer than 3, or the category is null),
+//                      the global median over every protocol with
+//                      a market cap and a TVL.
 //   growthPct        = clamp(change_7d, -30, 30) per cent
 //   growthMult       = 1 + growthPct / 100
 //   ageYears         = age_days unknown: 0, else min(age_days / 365.25, 2)
 //   ageMult          = 1 + 0.1 x ageYears
-//   chainMult        = 1 + 0.05 x min(max(chains.length - 1, 0), 4)
+//   chainMult        = 1 + 0.05 x min(chains.length, 4)
 //   implied          = max(1, round(tvl_usd x categoryMultiple x growthMult x ageMult x chainMult))
 //   airdrop          = round(implied x 0.07)
 //
@@ -54,8 +54,10 @@ export interface ModelConstants {
   age_rate: number;
   age_years_max: number;
   chain_bonus: number;
+  /** The most chains the chain bonus counts: every chain including the first counts, up to this many. */
   chain_extra_max: number;
   airdrop_pct: number;
+  /** The fewest live-token peers a category needs for its own median: at least three, else the global median. */
   category_min_peers: number;
 }
 
@@ -73,8 +75,11 @@ export const MODEL: ModelConstants = {
 /** The model's version label: the dashboard names it and the rules quote it. */
 export const MODEL_VERSION = 'comps-1';
 
-/** How many pre-token protocols below the watchlist floor the early radar carries, by TVL. */
-export const EARLY_ROWS = 160;
+/** How many pre-token protocols below the watchlist floor the early radar carries, by TVL (40 watchlist + 18 off-list + 142 early = 200 rows). */
+export const EARLY_ROWS = 142;
+
+/** How many pre-token protocols at or above the watchlist floor, but off the watchlist, the radar carries, by TVL. */
+export const OFF_LIST_ROWS = 20;
 
 /** How many live-token protocols the Live token view carries, by market cap. */
 export const LIVE_ROWS = 24;
@@ -219,7 +224,7 @@ function compsOf(protocols: SnapshotProtocol[]): Comps {
   return { globalMultiple: median(ratios), byCategory };
 }
 
-/** The market-cap-to-TVL multiple a protocol's category earns, or the global multiple when it has too few peers. */
+/** The market-cap-to-TVL multiple a protocol's category earns, or the global multiple when the category has no live-token peers. */
 function categoryMultiple(p: SnapshotProtocol, comps: Comps, model: ModelConstants): number {
   if (p.category === null) return comps.globalMultiple;
   const peers = comps.byCategory.get(p.category);
@@ -248,7 +253,7 @@ function scoreProtocol(p: SnapshotProtocol, asOf: string, comps: Comps, model: M
   const growthMult = 1 + growthPct / 100;
   const ageYears = age === null ? 0 : Math.min(age / 365.25, model.age_years_max);
   const ageMult = 1 + model.age_rate * ageYears;
-  const chainMult = 1 + model.chain_bonus * Math.min(Math.max(p.chains.length - 1, 0), model.chain_extra_max);
+  const chainMult = 1 + model.chain_bonus * Math.min(p.chains.length, model.chain_extra_max);
   const implied = Math.max(1, Math.round(p.tvl_usd * multiple * growthMult * ageMult * chainMult));
   const airdrop = Math.round(implied * model.airdrop_pct);
   return { implied, airdrop, categoryMultiple: multiple, growthPct, growthMult, ageMult, chainMult, age };
@@ -265,6 +270,15 @@ export function isPreToken(p: SnapshotProtocol): boolean {
 /** Whether a protocol is one the board may rank: pre-token, not an exchange, not a versioned pool. */
 export function isRankable(p: SnapshotProtocol): boolean {
   return isPreToken(p) && p.category !== 'CEX' && !VERSIONED.test(p.name);
+}
+
+/** Categories the watchlist rule excludes, mirrored by the off-list rule. */
+const OFF_LIST_EXCLUDED_CATEGORIES = new Set(['CEX', 'Bridge', 'Canonical Bridge', 'Cross Chain Bridge', 'Liquid Staking', 'Restaked BTC', 'Stablecoin Wrapper']);
+/** Name fragments the watchlist rule excludes, mirrored by the off-list rule. */
+const OFF_LIST_EXCLUDED_NAME = /staked|wrapped|bridge/i;
+/** Whether a protocol is an off-list row: pre-token, at or above the watchlist floor, not on the watchlist, and passing the watchlist's own exclusion rule. */
+export function isOffList(p: SnapshotProtocol, watchlist: Set<string>, floorUsd: number): boolean {
+  return isPreToken(p) && p.tvl_usd >= floorUsd && !watchlist.has(p.slug) && !OFF_LIST_EXCLUDED_CATEGORIES.has(p.category ?? '') && !VERSIONED.test(p.name) && !OFF_LIST_EXCLUDED_NAME.test(p.name);
 }
 
 /** The snapshot's protocol by slug. */
@@ -290,7 +304,14 @@ export function buildBoard(snapshot: Snapshot, model: ModelConstants = MODEL): B
     const p = index.get(slug);
     if (p !== undefined) chosen.set(slug, p);
   }
-  // The early radar: pre-token protocols below the watchlist floor, by TVL, capped. Never a replacement
+  // The off-list radar: pre-token protocols at or above the watchlist floor that the watchlist rule
+// itself left out, by TVL, capped. Never a replacement for a watchlist row.
+const offList = snapshot.protocols
+  .filter((p) => !chosen.has(p.slug) && isOffList(p, new Set(snapshot.watchlist), snapshot.floor_usd))
+  .sort((a, b) => b.tvl_usd - a.tvl_usd || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0))
+  .slice(0, OFF_LIST_ROWS);
+for (const p of offList) chosen.set(p.slug, p);
+// The early radar: pre-token protocols below the watchlist floor, by TVL, capped. Never a replacement
   // for a watchlist row: a chosen protocol stays chosen.
   const early = snapshot.protocols
     .filter((p) => !chosen.has(p.slug) && isRankable(p) && p.tvl_usd < snapshot.floor_usd)

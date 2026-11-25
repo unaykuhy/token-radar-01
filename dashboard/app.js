@@ -58,7 +58,7 @@
   function renderHowto() {
     $('howto').textContent = 'Click a row for detail. Click a header to sort.';
     $('honest').textContent = 'Implied value is an estimate from 14 Nov 2026 data, not a promise a token will launch.';
-    $('method').innerHTML = '<p>Implied value = TVL × category multiple (median mcap/TVL of live-token peers in the same category) × growth (7-day change, clamped ±30%) × age (1 + 10% per year, max 2 years) × chains (1 + 5% per extra chain, max 4). Airdrop value = 7% of implied value.</p>';
+    $('method').innerHTML = '<p>Implied value = TVL × category multiple (median mcap/TVL of live-token peers in the same category; categories with fewer than 3 live-token peers use the global median) × growth (7-day change, clamped ±30%) × age (1 + 10% per year, max 2 years) × chains (1 + 5% per chain, max 4 chains). Airdrop value = 7% of implied value. The board ranks 200 protocols: 40 watchlist + 18 off-list (pre-token, at or above the $50M floor, left out by the watchlist rule) + 142 below the floor.</p>';
   }
 
   function renderFilters() {
