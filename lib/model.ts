@@ -133,6 +133,7 @@ export interface RadarRow {
   growth_multiplier: number;
   age_multiplier: number;
   chain_multiplier: number;
+  starting_capital_usd: number;
 }
 
 /** A live-token protocol: it already trades, so the board shows the market's own value, not a model's. */
@@ -157,6 +158,7 @@ export interface RadarData {
   board_size: number;
   early_size: number;
   live_size: number;
+  watchlist: string[];
   rows: RadarRow[];
   live: LiveRow[];
 }
@@ -353,11 +355,16 @@ function gasCostForChain(chain: string): number {
 }
 
 /** How much capital one farm position needs, from the protocol's own TVL. */
-function capitalFor(p: SnapshotProtocol): number {
-  if (p.tvl_usd >= 5_000_000_000) return 250;
-  if (p.tvl_usd >= 1_000_000_000) return 150;
-  if (p.tvl_usd >= 100_000_000) return 100;
+export function startingCapitalUsd(tvlUsd: number): number {
+  if (tvlUsd >= 5_000_000_000) return 250;
+  if (tvlUsd >= 1_000_000_000) return 150;
+  if (tvlUsd >= 100_000_000) return 100;
   return 50;
+}
+
+/** How much capital one farm position needs, from the protocol's own TVL. */
+function capitalFor(p: SnapshotProtocol): number {
+  return startingCapitalUsd(p.tvl_usd);
 }
 
 /** How long to hold, from the protocol's age: younger protocols get a longer qualifying window. */
@@ -512,6 +519,7 @@ export function radarRow(row: BoardRow): RadarRow {
     growth_multiplier: row.model.growth_multiplier,
     age_multiplier: row.model.age_multiplier,
     chain_multiplier: row.model.chain_multiplier,
+    starting_capital_usd: startingCapitalUsd(row.tvl_usd),
   };
 }
 
@@ -530,6 +538,7 @@ export function buildRadar(snapshot: Snapshot, model: ModelConstants = MODEL): {
     board_size: board.length,
     early_size: early,
     live_size: live.length,
+    watchlist: snapshot.watchlist.slice(),
     rows: board.map(radarRow),
     live,
   };
