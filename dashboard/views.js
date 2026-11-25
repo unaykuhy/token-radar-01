@@ -13,10 +13,11 @@
   function el(id) { return document.getElementById(id); }
   function r1(n) { return Math.round(n * 10) / 10; }
 
-  function drawChart() {
+  function drawChart(W, H) {
     var host = el('chart');
     if (!host) return;
-    var W = 1400, H = 860, L = 90, RT = 40, T = 40, B = 60;
+    W = W || 1400; H = H || 860;
+    var L = 90, RT = 40, T = 40, B = 60;
     var pw = W - L - RT, ph = H - T - B;
     var maxRank = rows.length ? Math.max(rows[0].rank || 1, rows[rows.length - 1].rank || 1) : 200;
     if (maxRank < 2) maxRank = 2;
@@ -30,7 +31,7 @@
     var area = line + ' L' + r1(pts.length ? pts[pts.length - 1].x : L) + ' ' + r1(base) +
       ' L' + r1(pts.length ? pts[0].x : L) + ' ' + r1(base) + ' Z';
 
-    var svg = '<svg viewBox="0 0 1400 860" role="img" aria-label="Implied value by rank">';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Implied value by rank">';
     svg += '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + r1(base) + '" class="axis"/>';
     svg += '<line x1="' + L + '" y1="' + r1(base) + '" x2="' + (W - RT) + '" y2="' + r1(base) + '" class="axis"/>';
 
@@ -67,10 +68,10 @@
       '<p class="chart-note">Dashed line: the snapshot\u2019s $50M TVL floor, shown for reference \u2014 this chart plots implied value by rank, not TVL.</p>';
   }
 
-  function drawRadar() {
+  function drawRadar(size) {
     var host = el('radar');
     if (!host) return;
-    var CX = 500, CY = 500, RAD = 420;
+    var S = size || 1000, CX = S / 2, CY = S / 2, RAD = S * 0.42;
     var lo = Math.log(1e6), hi = Math.log(1e9), span = hi - lo;
     function rr(v) {
       v = Math.max(v || 0, 1);
@@ -96,7 +97,7 @@
       return { r: r, a: a, rad: rad, x: CX + Math.cos(a) * rad, y: CY + Math.sin(a) * rad };
     });
 
-    var svg = '<svg viewBox="0 0 1000 1000" role="img" aria-label="Ship radar of protocols by implied value and category">';
+    var svg = '<svg viewBox="0 0 ' + S + ' ' + S + '" role="img" aria-label="Ship radar of protocols by implied value and category">';
     var r500 = rr(5e8), r100 = rr(1e8);
 
     // Fine grid pattern background (marine radar phosphor look)
@@ -107,13 +108,13 @@
     for (var b = 0; b < 12; b++) {
       var ba = b * Math.PI / 6;
       var sx = r1(CX + Math.cos(ba) * RAD), sy = r1(CY + Math.sin(ba) * RAD);
-      svg += '<line x1="500" y1="500" x2="' + sx + '" y2="' + sy + '" class="radar-spoke"/>';
+      svg += '<line x1="' + CX + '" y1="' + CY + '" x2="' + sx + '" y2="' + sy + '" class="radar-spoke"/>';
     }
 
     // Rim and rings
-    svg += '<circle cx="500" cy="500" r="' + r1(RAD) + '" class="radar-rim"/>';
-    svg += '<circle cx="500" cy="500" r="' + r1(r500) + '" class="radar-ring"/>';
-    svg += '<circle cx="500" cy="500" r="' + r1(r100) + '" class="radar-ring"/>';
+    svg += '<circle cx="' + CX + '" cy="' + CY + '" r="' + r1(RAD) + '" class="radar-rim"/>';
+    svg += '<circle cx="' + CX + '" cy="' + CY + '" r="' + r1(r500) + '" class="radar-ring"/>';
+    svg += '<circle cx="' + CX + '" cy="' + CY + '" r="' + r1(r100) + '" class="radar-ring"/>';
 
     // Sweep angle and fade wedges (3 nested slices)
     var sweepA = -35 * Math.PI / 180;
@@ -130,7 +131,7 @@
     });
 
     // Bright sweep line
-    svg += '<line x1="500" y1="500" x2="' + r1(CX + Math.cos(sweepA) * RAD) + '" y2="' + r1(CY + Math.sin(sweepA) * RAD) + '" class="radar-sweep"/>';
+    svg += '<line x1="' + CX + '" y1="' + CY + '" x2="' + r1(CX + Math.cos(sweepA) * RAD) + '" y2="' + r1(CY + Math.sin(sweepA) * RAD) + '" class="radar-sweep"/>';
 
     // Bearing numbers around rim every 30 degrees (nautical: 0 at top, 90 right, 180 bottom, 270 left)
     for (var bn = 0; bn < 12; bn++) {
@@ -140,13 +141,15 @@
       svg += '<text x="' + bx + '" y="' + by + '" class="radar-bearing" text-anchor="middle">' + bearing + '</text>';
     }
 
-    // Ring labels at 225° diagonal (lower-left)
-    var diag = 0.70710678;
-    svg += '<text x="' + r1(CX - r500 * diag) + '" y="' + r1(CY + r500 * diag) + '" text-anchor="middle" class="ring-label">$500M</text>';
-    svg += '<text x="' + r1(CX - r100 * diag) + '" y="' + r1(CY + r100 * diag) + '" text-anchor="middle" class="ring-label">$100M</text>';
-    svg += '<text x="' + r1(CX - RAD * diag) + '" y="' + r1(CY + RAD * diag) + '" text-anchor="middle" class="ring-label">$1M</text>';
-    svg += '<circle cx="500" cy="500" r="2" class="radar-center"/>';
-    svg += '<text x="512" y="504" class="ring-label center-label" style="font-size:9px">$1B</text>';
+    var combined = S < 1000;
+    if (!combined) {
+      var diag = 0.70710678;
+      svg += '<text x="' + r1(CX - r500 * diag) + '" y="' + r1(CY + r500 * diag) + '" text-anchor="middle" class="ring-label">$500M</text>';
+      svg += '<text x="' + r1(CX - r100 * diag) + '" y="' + r1(CY + r100 * diag) + '" text-anchor="middle" class="ring-label">$100M</text>';
+      svg += '<text x="' + r1(CX - RAD * diag) + '" y="' + r1(CY + RAD * diag) + '" text-anchor="middle" class="ring-label">$1M</text>';
+    }
+    svg += '<circle cx="' + CX + '" cy="' + CY + '" r="2" class="radar-center"/>';
+    svg += '<text x="' + (CX + 12) + '" y="' + (CY + 4) + '" class="ring-label center-label" style="font-size:9px">$1B</text>';
 
     // Blips as glowing squares with center dot (monochrome phosphor)
     pos.forEach(function (p, i) {
@@ -160,12 +163,18 @@
       svg += '<circle cx="' + x + '" cy="' + y + '" r="1.5" fill="var(--accent)"/>';
     });
 
-    // Top 20 labels with collision avoidance
+    // Top labels with collision avoidance: 20 for standalone, 10 for combined
+    var maxLabels = combined ? 5 : 20;
     var placed = [];
     var placedCount = 0;
-    pos.slice(0, 20).forEach(function (p) {
+    // Reserve space for $1B center label so protocol labels avoid it
+    var centerLabelW = 18, centerLabelH = 11;
+    var centerLabelX = CX + 12 - centerLabelW / 2;
+    var centerLabelY = CY + 4 - centerLabelH;
+    placed.push({ x: centerLabelX, y: centerLabelY, w: centerLabelW, h: centerLabelH });
+    pos.slice(0, maxLabels).forEach(function (p) {
       var name = esc(p.r.name);
-      var w = name.length * 6.5, h = 12;
+      var w = name.length * 6.5, h = 16;
       var angle = p.a;
       var lx = p.x + Math.cos(angle) * 16;
       var ly = p.y + Math.sin(angle) * 16;
@@ -179,8 +188,8 @@
         return false;
       };
       var tries = 0;
-      while (tries < 3 && overlap(lx + dx - (anchor === 'end' ? w : 0), ly - h / 2)) {
-        ly += 14;
+      while (tries < 8 && overlap(lx + dx - (anchor === 'end' ? w : 0), ly - h / 2)) {
+        ly += 16;
         tries++;
       }
       if (!overlap(lx + dx - (anchor === 'end' ? w : 0), ly - h / 2)) {
@@ -200,11 +209,12 @@
   function drawNav() {
     var host = el('views');
     if (!host) return;
-    var active = VIEW === 'chart' || VIEW === 'radar' ? VIEW : 'pre';
+    var active = VIEW === 'chart' || VIEW === 'radar' || VIEW === 'combined' ? VIEW : 'pre';
     var items = [
       { key: 'pre', label: 'Pre-token board', search: '' },
       { key: 'chart', label: 'Full chart', search: '?view=chart' },
-      { key: 'radar', label: 'Ship radar', search: '?view=radar' }
+      { key: 'radar', label: 'Ship radar', search: '?view=radar' },
+      { key: 'combined', label: 'Chart + radar', search: '?view=combined' }
     ];
     items.forEach(function (it) {
       var b = document.createElement('button');
@@ -223,5 +233,9 @@
   } else if (VIEW === 'radar') {
     document.body.classList.add('radar-view');
     drawRadar();
+  } else if (VIEW === 'combined') {
+    document.body.classList.add('combined-view');
+    drawChart(780, 820);
+    drawRadar(560);
   }
 })();

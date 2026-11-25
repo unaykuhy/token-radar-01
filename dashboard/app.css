@@ -456,6 +456,19 @@ button { cursor: pointer; }
 .chartview svg, .radarview svg { width: 100%; height: auto; display: block; }
 .radarview svg { height: min(720px, calc(100vh - 300px)); width: auto; max-width: 100%; margin: 0 auto; }
 
+/* Combined view (?view=combined): chart left, radar right, one 1440x1080 frame. */
+.combined-view .shell { max-width: 1400px; display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); column-gap: 12px; }
+.combined-view .top, .combined-view #stats, .combined-view #risers, .combined-view #views { grid-column: 1 / -1; }
+.combined-view .top { grid-row: 1; }
+.combined-view #stats { grid-row: 2; }
+.combined-view #risers { grid-row: 3; }
+.combined-view #views { grid-row: 4; }
+.combined-view .board-wrap, .combined-view #filters, .combined-view #howto, .combined-view #tabs, .combined-view #detail, .combined-view #method, .combined-view #live { display: none; }
+.combined-view #chart { grid-column: 1; grid-row: 5; display: block; }
+.combined-view #radar { grid-column: 2; grid-row: 5; display: block; }
+.combined-view .chartview, .combined-view .radarview { margin-top: 8px; padding: 8px 10px; }
+.combined-view .chartview svg, .combined-view .radarview svg { width: 100%; height: auto; }
+
 /* Chart SVG classes */
 .axis { stroke: var(--border); stroke-width: 1.5; }
 .grid { stroke: var(--border); stroke-width: 0.5; opacity: 0.5; }
