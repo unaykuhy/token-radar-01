@@ -105,7 +105,7 @@
     $('honest').textContent = HONEST_TEXT;
     $('method').innerHTML =
       '<h2>Methodology</h2>' +
-      '<p class="method-formula">Implied value = TVL \u00d7 category multiple (median mcap/TVL of live-token peers in the same category; categories with fewer than 3 live-token peers use the global median) \u00d7 growth (7-day change, clamped \u00b130%) \u00d7 age (1 + 10% per year, max 2 years) \u00d7 chains (1 + 5% per chain, max 4 chains). Airdrop value = 7% of implied value. The board ranks 200 protocols: 40 watchlist + 18 off-list (pre-token, at or above the $50M floor, left out by the watchlist rule) + 142 below the floor.</p>' +
+      '<p class="method-formula">' + (HERO ? 'Implied = TVL × category multiple (median mcap/TVL of live-token peers; <3 peers use global median) × growth (7d change, ±30%) × age (1+10%/yr, max 2yr) × chains (1+5%/chain, max 4). Airdrop = 7% of implied. Board: 40 watchlist + 18 off-list + 142 below floor. Farm verdict ($1,000): share = ($1,000/TVL) × 7% pool, net of gas; FARM ≥$5, THIN $0–$5, SKIP <$0.</p>' : 'Implied value = TVL \u00d7 category multiple (median mcap/TVL of live-token peers in the same category; categories with fewer than 3 live-token peers use the global median) \u00d7 growth (7-day change, clamped \u00b130%) \u00d7 age (1 + 10% per year, max 2 years) \u00d7 chains (1 + 5% per chain, max 4 chains). Airdrop value = 7% of implied value. The board ranks 200 protocols: 40 watchlist + 18 off-list (pre-token, at or above the $50M floor, left out by the watchlist rule) + 142 below the floor.</p>') +
       categoryMultiplesHtml() +
       '<p class="method-honest">' + esc(HONEST_TEXT) + '</p>';
   }
@@ -158,6 +158,10 @@
     if (c < -10) return ['high', 'Sharp drop'];
     return ['mid', 'Down'];
   }
+  function farmOf(r) {
+    var m = /\$([0-9.]+) gas/i.exec(r.farm_steps[0] || ''), g = m ? +m[1] : 1, s = 1e3 / (r.tvl_usd || 1) * (r.airdrop_value_usd || 0), n = s - g;
+    return [n >= 5 ? ['low', 'FARM'] : n >= 0 ? ['mid', 'THIN'] : ['high', 'SKIP'], n];
+  }
 
   function renderBoard() {
     document.querySelectorAll('.th-sort').forEach(function (th) {
@@ -178,6 +182,7 @@
       var tr = document.createElement('tr');
       tr.setAttribute('data-slug', r.slug);
       var risk = riskOf(r);
+      var f=farmOf(r);
       var changeCls = r.change_7d == null ? 'flat' : r.change_7d > 0 ? 'up' : r.change_7d < 0 ? 'down' : 'flat';
       var rankCls = r.rank <= 3 ? ' medal-' + r.rank : '';
       tr.innerHTML =
@@ -191,7 +196,8 @@
         '<td class="num">' + money(r.airdrop_value_usd) + '</td>' +
         '<td>' + (r.listed_at ? esc(r.listed_at) : '—') + '</td>' +
         '<td class="num">' + (r.starting_capital_usd != null ? money(r.starting_capital_usd) : '—') + '</td>' +
-        '<td><span class="risk-label risk-' + risk[0] + '">' + risk[1] + '</span></td>';
+        '<td><span class="risk-label risk-' + risk[0] + '">' + risk[1] + '</span></td>' +
+        '<td><span class="risk-label risk-' + f[0][0] + '">' + f[0][1] + ' ' + (f[1]<0?'-':'+') + '$' + Math.abs(f[1]).toFixed(2) + '</span></td>';
       tr.addEventListener('click', function () {
         document.querySelectorAll('#board-body tr.selected').forEach(function (x) { x.classList.remove('selected'); });
         tr.classList.add('selected');
