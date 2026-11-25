@@ -27,7 +27,7 @@
   }
 
   function barRow(label, value, logv, maxlog, cls) {
-    var w = Math.max(0, Math.min(100, (logv / maxlog) * 100));
+    var w = cls ? 100 : Math.max(0, Math.min(100, (Number(value) / 1.2) * 100));
     return '<div class="breakdown-row">' +
       '<span class="br-label">' + label + '</span>' +
       '<span class="br-mult num">' + (cls ? esc(value) : '×' + Number(value).toFixed(2)) + '</span>' +

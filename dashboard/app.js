@@ -3,6 +3,12 @@
   var rows = R.rows || [];
   var wl = new Set(R.watchlist || []);
   var S = { tab: 'board', category: 'all', chain: 'all', watchlistOnly: false, q: '', sort: 'implied_value_usd', dir: -1 };
+  var HERO = location.search.indexOf('view=hero') >= 0;
+  var PARAMS = new URLSearchParams(location.search);
+  var PARAM_CATEGORY = PARAMS.get('category') || '';
+  var PARAM_DETAIL = PARAMS.get('detail') || '';
+  var DETAIL_VIEW = PARAMS.get('view') === 'detail';
+  if (PARAM_CATEGORY) S.category = PARAM_CATEGORY;
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -122,7 +128,9 @@
     });
     var body = $('board-body');
     body.innerHTML = '';
-    filtered().forEach(function (r) {
+    var list = filtered();
+    if (HERO) list = list.slice(0, 30);
+    list.forEach(function (r) {
       var tr = document.createElement('tr');
       tr.setAttribute('data-slug', r.slug);
       var risk = riskOf(r);
@@ -175,4 +183,27 @@
   renderBoard();
   renderTabs();
   applyTab();
+
+  function renderLiveStrip() {
+    var live = (R.live || []).slice().sort(function (a, b) { return (b.mcap_usd || 0) - (a.mcap_usd || 0); }).slice(0, 6);
+    var el = $('live');
+    if (!el) return;
+    el.innerHTML = '<strong>Already trading:</strong> ' + live.map(function (r) { return esc(r.name) + ' ' + money(r.mcap_usd); }).join(' \u00b7 ');
+    el.hidden = false;
+  }
+
+  if (HERO) {
+    document.body.classList.add('hero');
+    window.addEventListener('load', function () {
+      if (typeof window.showDetail === 'function') window.showDetail('gauntlet');
+      renderLiveStrip();
+    });
+  }
+
+  if (DETAIL_VIEW) {
+    document.body.classList.add('detail-view');
+  }
+  window.addEventListener('load', function () {
+    if (!HERO && PARAM_DETAIL && typeof window.showDetail === 'function') window.showDetail(PARAM_DETAIL);
+  });
 })();
