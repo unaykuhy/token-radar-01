@@ -114,7 +114,7 @@ export interface BoardRow {
   farm_steps: string[];
 }
 
-/** The dashboard's compact view of one row, with farm plans generated in the page. */
+/** The dashboard's compact view of one row, shipping the board's farm steps verbatim. */
 export interface RadarRow {
   rank: number;
   slug: string;
@@ -134,6 +134,7 @@ export interface RadarRow {
   age_multiplier: number;
   chain_multiplier: number;
   starting_capital_usd: number;
+  farm_steps: string[];
 }
 
 /** A live-token protocol: it already trades, so the board shows the market's own value, not a model's. */
@@ -499,7 +500,7 @@ export function liveRows(snapshot: Snapshot): LiveRow[] {
     }));
 }
 
-/** A board row's compact form for data.js, with the farm plan generated in the page. */
+/** A board row's compact form for data.js, shipping the board's farm steps verbatim. */
 export function radarRow(row: BoardRow): RadarRow {
   return {
     rank: row.rank,
@@ -520,6 +521,7 @@ export function radarRow(row: BoardRow): RadarRow {
     age_multiplier: row.model.age_multiplier,
     chain_multiplier: row.model.chain_multiplier,
     starting_capital_usd: startingCapitalUsd(row.tvl_usd),
+    farm_steps: row.farm_steps.slice(),
   };
 }
 
