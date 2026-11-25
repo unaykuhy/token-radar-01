@@ -9,6 +9,8 @@
   var PARAM_DETAIL = PARAMS.get('detail') || '';
   var DETAIL_VIEW = PARAMS.get('view') === 'detail';
   var METHOD_VIEW = PARAMS.get('view') === 'method';
+  var LIVE_VIEW = PARAMS.get('view') === 'live';
+  var SPLIT_VIEW = PARAMS.get('view') === 'split';
   if (PARAM_CATEGORY) S.category = PARAM_CATEGORY;
 
   function esc(s) {
@@ -246,6 +248,24 @@
   }
   if (METHOD_VIEW) {
     document.body.classList.add('method-view');
+    window.addEventListener('load', function () {
+      if (typeof window.renderLive === 'function') window.renderLive(12);
+      var lv2 = $('live');
+      if (lv2) lv2.hidden = false;
+    });
+  }
+  if (LIVE_VIEW) {
+    document.body.classList.add('live-view');
+    window.addEventListener('load', function () {
+      S.tab = 'live';
+      renderTabs();
+      if (typeof window.renderLive === 'function') window.renderLive(33);
+      var lv = $('live');
+      if (lv) lv.hidden = false;
+    });
+  }
+  if (SPLIT_VIEW) {
+    document.body.classList.add('split-view');
   }
   window.addEventListener('load', function () {
     if (!HERO && PARAM_DETAIL && typeof window.showDetail === 'function') window.showDetail(PARAM_DETAIL);

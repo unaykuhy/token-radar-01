@@ -62,20 +62,32 @@
       var close = r.tvl_usd;
       var hi = Math.max(open, close), lo = Math.min(open, close);
       var up = close >= open;
-      var pad = 4, span = hi - lo;
-      var yOf = function (v) { return span > 0 ? pad + (1 - (v - lo) / span) * (40 - pad * 2) : 20; };
-      var topY = yOf(hi), botY = yOf(lo), bodyH = Math.max(3, botY - topY);
-      if (topY + bodyH > 40 - pad) topY = 40 - pad - bodyH;
+      var pad = 6, span = hi - lo, CH = 90;
+      var yOf = function (v) { return span > 0 ? pad + (1 - (v - lo) / span) * (CH - pad * 2) : CH / 2; };
+      var topY = yOf(hi), botY = yOf(lo), bodyH = Math.max(6, botY - topY);
+      if (topY + bodyH > CH - pad) topY = CH - pad - bodyH;
+      var topVal = up ? close : open, botVal = up ? open : close;
+      var pctTxt = r.change_7d == null ? '' : pct(r.change_7d) + ' \u00b7 7d';
       candleHtml =
         '<div class="tvl-candle">' +
           '<div class="tvl-candle-top">' +
             '<span class="tvl-title">TVL, past 7 days</span>' +
-            '<span class="tvl-candle-nums">open <b>' + money(open) + '</b> · close <b>' + money(close) + '</b></span>' +
           '</div>' +
-          '<svg class="tvl-svg" viewBox="0 0 100 40" preserveAspectRatio="none" role="img" aria-label="TVL candle">' +
-            '<rect class="tvl-candle-body ' + (up ? 'up' : 'down') + '" x="42" y="' + topY.toFixed(2) +
-              '" width="16" height="' + bodyH.toFixed(2) + '" rx="1"></rect>' +
-          '</svg>' +
+          '<div class="tvl-chart">' +
+            '<div class="tvl-scale">' +
+              '<span class="tvl-scale-val ' + (up ? 'up' : 'down') + '" style="top:' + Math.max(0, topY - 7).toFixed(1) + 'px">' + money(topVal) + '</span>' +
+              '<span class="tvl-scale-val ' + (up ? 'up' : 'down') + '" style="top:' + Math.min(76, botY - 7).toFixed(1) + 'px">' + money(botVal) + '</span>' +
+            '</div>' +
+            '<svg class="tvl-svg" viewBox="0 0 60 90" role="img" aria-label="TVL candle">' +
+              '<rect class="tvl-candle-body ' + (up ? 'up' : 'down') + '" x="10" y="' + topY.toFixed(2) +
+                '" width="40" height="' + bodyH.toFixed(2) + '" rx="1"></rect>' +
+            '</svg>' +
+            '<div class="tvl-labels">' +
+              '<span>open <b>' + money(open) + '</b></span>' +
+              '<span>close <b>' + money(close) + '</b></span>' +
+              (pctTxt ? '<span class="' + (up ? 'up' : 'down') + '">' + pctTxt + '</span>' : '') +
+            '</div>' +
+          '</div>' +
           '<p class="tvl-candle-note">TVL, past 7 days — one candle: open = TVL 7 days ago, derived from the 7d change; close = TVL on 14 Nov 2026. No daily prices in the snapshot.</p>' +
         '</div>';
     } else {
@@ -113,8 +125,11 @@
     markSelected(slug);
   };
 
-  window.renderLive = function () {
+  window.renderLive = function (limit) {
     var live = R.live || [];
+    var totalLive = live.length;
+    live = live.slice().sort(function (a, b) { return (b.mcap_usd || 0) - (a.mcap_usd || 0); });
+    if (limit && live.length > limit) live = live.slice(0, limit);
     var body = live.map(function (r) {
       var cls = r.change_7d == null ? 'flat' : r.change_7d > 0 ? 'up' : r.change_7d < 0 ? 'down' : 'flat';
       var ratio = r.tvl_usd && r.mcap_usd ? (r.mcap_usd / r.tvl_usd).toFixed(2) : '—';
@@ -130,6 +145,6 @@
       '<table class="board live-table"><thead><tr>' +
       '<th>Name</th><th>Category</th><th>Chains</th><th class="num">TVL</th>' +
       '<th class="num">Market cap</th><th class="num">7d</th><th class="num">MCap/TVL</th>' +
-      '</tr></thead><tbody>' + body + '</tbody></table>';
+      '</tr></thead><tbody>' + body + '</tbody></table>' + (limit && totalLive > limit ? '<p class="live-note">Showing top ' + limit + ' of ' + totalLive + ' live-token protocols, ranked by market cap.</p>' : '');
   };
 })();
