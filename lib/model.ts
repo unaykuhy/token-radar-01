@@ -154,6 +154,29 @@ export interface LiveRow {
   change_7d: number | null;
 }
 
+/** One tokenized peer for the market-line scatter: TVL and market cap only. */
+export interface MarketPeer {
+  tvl: number;
+  mcap: number;
+}
+
+/** The market line: log-log fit of market cap on TVL over tokenized peers. */
+export interface MarketData {
+  n: number;
+  a: number;
+  b: number;
+  r2: number;
+  peers: MarketPeer[];
+}
+
+/** Leave-one-out holdout of the comps model on tokenized peers. */
+export interface HoldoutData {
+  n: number;
+  typical_miss: number;
+  within2: number;
+  within5: number;
+}
+
 /** Everything the dashboard needs: the board, the live set, and the model it runs. */
 export interface RadarData {
   as_of: string;
@@ -168,6 +191,8 @@ export interface RadarData {
   watchlist: string[];
   rows: RadarRow[];
   live: LiveRow[];
+  market: MarketData;
+  holdout: HoldoutData;
 }
 
 /** Why the snapshot is not one this model can score. */
@@ -581,6 +606,35 @@ export function liveRows(snapshot: Snapshot): LiveRow[] {
     }));
 }
 
+/** Tokenized peers (market cap and TVL above zero, CEX set aside like the live view) for the market line. */
+export function marketPeers(snapshot: Snapshot): SnapshotProtocol[] {
+  return snapshot.protocols.filter((p) => p.mcap_usd !== null && p.mcap_usd > 0 && p.tvl_usd > 0 && p.category !== 'CEX');
+}
+
+/** The log-log market line and leave-one-out holdout of the comps model, from the snapshot's own peers. */
+export function marketLine(snapshot: Snapshot, model: ModelConstants = MODEL): { market: MarketData; holdout: HoldoutData } {
+  const peers = marketPeers(snapshot);
+  const xs = peers.map((p) => Math.log10(p.tvl_usd));
+  const ys = peers.map((p) => Math.log10(p.mcap_usd!));
+  const n = peers.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let cov = 0, vx = 0, ssr = 0, sst = 0;
+  for (let i = 0; i < n; i++) { cov += (xs[i]! - mx) * (ys[i]! - my); vx += (xs[i]! - mx) ** 2; }
+  const b = cov / vx, a = my - b * mx;
+  for (let i = 0; i < n; i++) { const pr = a + b * xs[i]!; ssr += (ys[i]! - pr) ** 2; sst += (ys[i]! - my) ** 2; }
+  const r2 = 1 - ssr / sst;
+  const factors: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const rest = peers.filter((_, j) => j !== i);
+    factors.push(scoreProtocol(peers[i]!, snapshot.as_of, compsOf(rest), model).implied / peers[i]!.mcap_usd!);
+  }
+  return {
+    market: { n, a, b, r2, peers: peers.map((p) => ({ tvl: p.tvl_usd, mcap: p.mcap_usd! })) },
+    holdout: { n, typical_miss: median(factors), within2: factors.filter((f) => f >= 0.5 && f <= 2).length, within5: factors.filter((f) => f >= 0.2 && f <= 5).length },
+  };
+}
+
 /** A board row's compact form for data.js, shipping the board's farm steps verbatim. */
 export function radarRow(row: BoardRow): RadarRow {
   return {
@@ -610,6 +664,7 @@ export function radarRow(row: BoardRow): RadarRow {
 export function buildRadar(snapshot: Snapshot, model: ModelConstants = MODEL): { board: BoardRow[]; radar: RadarData } {
   const board = buildBoard(snapshot, model);
   const live = liveRows(snapshot);
+  const { market, holdout } = marketLine(snapshot, model);
   const early = board.filter((r) => !snapshot.watchlist.includes(r.slug)).length;
   const radar: RadarData = {
     as_of: snapshot.as_of,
@@ -624,6 +679,8 @@ export function buildRadar(snapshot: Snapshot, model: ModelConstants = MODEL): {
     watchlist: snapshot.watchlist.slice(),
     rows: board.map(radarRow),
     live,
+    market,
+    holdout,
   };
   return { board, radar };
 }

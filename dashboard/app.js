@@ -12,7 +12,6 @@
   var LIVE_VIEW = PARAMS.get('view') === 'live';
   var SPLIT_VIEW = PARAMS.get('view') === 'split';
   if (PARAM_CATEGORY) S.category = PARAM_CATEGORY;
-
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return '&' + { '&': 'amp;', '<': 'lt;', '>': 'gt;', '"': 'quot;', "'": '#39;' }[c];
@@ -30,7 +29,7 @@
     return (v > 0 ? '+' : '') + v.toFixed(1) + '%';
   }
   function $(id) { return document.getElementById(id); }
-
+  window.esc=esc;window.money=money;window.pct=pct;window.$=$;
   function filtered() {
     var q = S.q.trim().toLowerCase();
     return rows.filter(function (r) {
@@ -47,11 +46,10 @@
       return ((x == null ? -Infinity : x) - (y == null ? -Infinity : y)) * S.dir;
     });
   }
-
   function renderStats() {
     var tvl = 0, imp = 0;
     rows.forEach(function (r) { tvl += r.tvl_usd || 0; imp += r.implied_value_usd || 0; });
-    $('stats').innerHTML = esc(rows.length) + ' protocols · ' + wl.size + ' watchlist · total TVL ' +
+    $('stats').innerHTML = rows.length + ' protocols · ' + wl.size + ' watchlist · total TVL ' +
       money(tvl) + ' · total implied ' + money(imp);
     var tops = rows.filter(function (r) { return wl.has(r.slug); })
       .sort(function (a, b) { return (b.change_7d || 0) - (a.change_7d || 0); }).slice(0, 3);
@@ -63,9 +61,7 @@
       if (asOf) asOf.textContent = 'Data: ' + R.as_of;
     }
   }
-
   var HONEST_TEXT = 'Implied value is an estimate from 14 Nov 2026 data, not a promise a token will launch.';
-
   function categoryMultiplesHtml() {
     var seen = {}, cats = [];
     rows.forEach(function (r) {
@@ -99,17 +95,12 @@
     }
     return html + '</tbody></table></div>';
   }
-
   function renderHowto() {
     $('howto').textContent = 'Click a row for detail. Click a header to sort.';
     $('honest').textContent = HONEST_TEXT;
-    $('method').innerHTML =
-      '<h2>Methodology</h2>' +
-      '<p class="method-formula">' + (HERO ? 'Implied = TVL × category multiple (median mcap/TVL of live-token peers; <3 peers use global median) × growth (7d change, ±30%) × age (1+10%/yr, max 2yr) × chains (1+5%/chain, max 4). Airdrop = 7% of implied. Board: 40 watchlist + 18 off-list + 142 below floor. Farm verdict ($1,000): share = ($1,000/TVL) × 7% pool, net of gas; FARM ≥$5, THIN $0–$5, SKIP <$0.</p>' : 'Implied value = TVL \u00d7 category multiple (median mcap/TVL of live-token peers in the same category; categories with fewer than 3 live-token peers use the global median) \u00d7 growth (7-day change, clamped \u00b130%) \u00d7 age (1 + 10% per year, max 2 years) \u00d7 chains (1 + 5% per chain, max 4 chains). Airdrop value = 7% of implied value. The board ranks 200 protocols: 40 watchlist + 18 off-list (pre-token, at or above the $50M floor, left out by the watchlist rule) + 142 below the floor.</p>') +
-      categoryMultiplesHtml() +
-      '<p class="method-honest">' + esc(HONEST_TEXT) + '</p>';
+    var H=(R.holdout||{});var ex=!HERO&&H.n?' Leave-one-out on '+H.n+' peers: typical miss x'+H.typical_miss.toFixed(2)+'; within 2x '+H.within2+', within 5x '+H.within5+'.':''
+    $('method').innerHTML='<h2>Methodology</h2><p class="method-formula">'+(HERO?'Implied = TVL × category multiple (median mcap/TVL of live-token peers; <3 peers use global median) × growth (7d change, ±30%) × age (1+10%/yr, max 2yr) × chains (1+5%/chain, max 4). Airdrop = 7% of implied. Board: 40 watchlist + 18 off-list + 142 below floor. Farm verdict ($1,000): share = ($1,000/TVL) × 7% pool, net of gas; FARM ≥$5, THIN $0–$5, SKIP <$0.':'Implied value = TVL × category multiple (median mcap/TVL of live-token peers in the same category; categories with fewer than 3 live-token peers use the global median) × growth (7-day change, clamped ±30%) × age (1 + 10% per year, max 2 years) × chains (1 + 5% per chain, max 4 chains). Airdrop value = 7% of implied value. The board ranks 200 protocols: 40 watchlist + 18 off-list (pre-token, at or above the $50M floor, left out by the watchlist rule) + 142 below the floor.'+ex)+'</p>'+categoryMultiplesHtml()+'<p class="method-honest">'+esc(HONEST_TEXT)+'</p>';
   }
-
   function renderFilters() {
     var cats = [];
     rows.forEach(function (r) { if (cats.indexOf(r.category) < 0) cats.push(r.category); });
@@ -151,7 +142,6 @@
     f.insertBefore(chips, sel);
     renderSummary();
   }
-
   function riskOf(r) {
     var c = r.change_7d;
     if (c == null || c >= 0) return ['low', 'Steady'];
@@ -162,7 +152,6 @@
     var m = /\$([0-9.]+) gas/i.exec(r.farm_steps[0] || ''), g = m ? +m[1] : 1, s = 1e3 / (r.tvl_usd || 1) * (r.airdrop_value_usd || 0), n = s - g;
     return [n >= 5 ? ['low', 'FARM'] : n >= 0 ? ['mid', 'THIN'] : ['high', 'SKIP'], n];
   }
-
   function renderBoard() {
     document.querySelectorAll('.th-sort').forEach(function (th) {
       th.classList.remove('asc', 'desc');
@@ -207,8 +196,6 @@
     });
     renderSummary();
   }
-
-
   function renderSummary() {
     var el = $('summary');
     if (!el) return;
@@ -219,18 +206,13 @@
     var isSearch = S.q.trim() !== '';
     var label = '';
     var html = '';
-
     if (!isHero) {
       el.innerHTML = '';
       return;
     }
-
-    // Determine which rows to use for summary
     var summaryRows = list;
     var useAllRows = !isCategory && !isWatchlist && !isSearch;
-
     if (useAllRows) {
-      // Hero view without filters: use ALL rows (not sliced to 30)
       summaryRows = rows;
       var totalTvl = 0, totalImp = 0;
       summaryRows.forEach(function(r) { totalTvl += r.tvl_usd || 0; totalImp += r.implied_value_usd || 0; });
@@ -239,45 +221,31 @@
       var belowFloorRows = summaryRows.filter(function(r) { return !wl.has(r.slug) && (r.tvl_usd || 0) < (R.floor_usd || 50000000); });
       label = 'Board summary';
       html = '<div class="summary-label">' + esc(label) + '</div>' +
-        '<div class="summary-value">' + esc(summaryRows.length) + ' protocols · watchlist ' + esc(watchlistRows.length) + '/' + esc(wl.size) +
-        ' · off-list ' + esc(offListRows.length) + ' · below floor ' + esc(belowFloorRows.length) + '</div>' +
+        '<div class="summary-value">' + summaryRows.length + ' protocols · watchlist ' + watchlistRows.length + '/' + wl.size +
+        ' · off-list ' + offListRows.length + ' · below floor ' + belowFloorRows.length + '</div>' +
         '<div class="summary-detail">Total TVL ' + money(totalTvl) + ' · Total implied ' + money(totalImp) + '</div>';
     } else if (isCategory) {
-      // Category filter active
       var cat = S.category;
       var catRows = rows.filter(function(r) { return r.category === cat; });
       var totalTvl = 0, totalImp = 0;
       catRows.forEach(function(r) { totalTvl += r.tvl_usd || 0; totalImp += r.implied_value_usd || 0; });
-      // Find top by implied
       var top = catRows.slice().sort(function(a, b) { return (b.implied_value_usd || 0) - (a.implied_value_usd || 0); })[0];
-      // Get category multiple from first row (all same category have same multiple)
       var mult = catRows.length > 0 ? catRows[0].category_multiple : 0;
       label = esc(cat) + ' summary';
       html = '<div class="summary-label">' + label + '</div>' +
-        '<div class="summary-value">' + esc(catRows.length) + ' protocols · total TVL ' + money(totalTvl) + ' · total implied ' + money(totalImp) + '</div>' +
+        '<div class="summary-value">' + catRows.length + ' protocols · total TVL ' + money(totalTvl) + ' · total implied ' + money(totalImp) + '</div>' +
         '<div class="summary-detail">Top: ' + esc(top ? top.name : '—') + ' ' + money(top ? top.implied_value_usd : 0) + ' · multiple ×' + (mult ? mult.toFixed(2).replace('.', ',') : '—') + '</div>';
     } else if (isWatchlist) {
-      // Watchlist only
       var wlRows = rows.filter(function(r) { return wl.has(r.slug); });
       var totalTvl = 0, totalImp = 0;
       wlRows.forEach(function(r) { totalTvl += r.tvl_usd || 0; totalImp += r.implied_value_usd || 0; });
       var top = wlRows.slice().sort(function(a, b) { return (b.implied_value_usd || 0) - (a.implied_value_usd || 0); })[0];
       label = 'Watchlist summary';
       html = '<div class="summary-label">' + label + '</div>' +
-        '<div class="summary-value">' + esc(wlRows.length) + ' protocols · total TVL ' + money(totalTvl) + ' · total implied ' + money(totalImp) + '</div>' +
+        '<div class="summary-value">' + wlRows.length + ' protocols · total TVL ' + money(totalTvl) + ' · total implied ' + money(totalImp) + '</div>' +
         '<div class="summary-detail">Top: ' + esc(top ? top.name : '—') + ' ' + money(top ? top.implied_value_usd : 0) + '</div>';
     } else {
-      // Combined filters (search, chain, etc.) - use currently displayed rows
-      var dispRows = list; // already filtered, but may be sliced to 30 in hero
-      // For combined filters, we should use the filtered list (not sliced)
-      var filteredAll = rows.filter(function(r) {
-        if (S.category !== 'all' && r.category !== S.category) return false;
-        if (S.chain !== 'all' && !(r.chains || []).includes(S.chain)) return false;
-        if (S.watchlistOnly && !wl.has(r.slug)) return false;
-        var q = S.q.trim().toLowerCase();
-        if (q && r.name.toLowerCase().indexOf(q) < 0 && r.slug.toLowerCase().indexOf(q) < 0) return false;
-        return true;
-      });
+      var filteredAll = list;
       var totalTvl = 0, totalImp = 0;
       filteredAll.forEach(function(r) { totalTvl += r.tvl_usd || 0; totalImp += r.implied_value_usd || 0; });
       var top = filteredAll.slice().sort(function(a, b) { return (b.implied_value_usd || 0) - (a.implied_value_usd || 0); })[0];
@@ -288,13 +256,11 @@
       if (S.q.trim()) parts.push('search: "' + esc(S.q.trim()) + '"');
       label = 'Filtered: ' + parts.join(', ');
       html = '<div class="summary-label">' + esc(label) + '</div>' +
-        '<div class="summary-value">' + esc(filteredAll.length) + ' protocols · total TVL ' + money(totalTvl) + ' · total implied ' + money(totalImp) + '</div>' +
+        '<div class="summary-value">' + filteredAll.length + ' protocols · total TVL ' + money(totalTvl) + ' · total implied ' + money(totalImp) + '</div>' +
         '<div class="summary-detail">Top: ' + esc(top ? top.name : '—') + ' ' + money(top ? top.implied_value_usd : 0) + '</div>';
     }
-
     el.innerHTML = html;
   }
-
   function renderTabs() {
     var tabs = $('tabs');
     tabs.innerHTML = '';
@@ -306,7 +272,6 @@
       tabs.appendChild(b);
     });
   }
-
   function applyTab() {
     var board = document.querySelector('.board-wrap');
     var live = $('live');
@@ -315,14 +280,12 @@
     if (S.tab === 'live' && typeof window.renderLive === 'function') window.renderLive();
     renderSummary();
   }
-
   renderStats();
   renderHowto();
   renderFilters();
   renderBoard();
   renderTabs();
   applyTab();
-
   function renderLiveStrip() {
     var live = (R.live || []).slice().sort(function (a, b) { return (b.mcap_usd || 0) - (a.mcap_usd || 0); }).slice(0, 6);
     var el = $('live');
@@ -330,7 +293,6 @@
     el.innerHTML = '<strong>Already trading:</strong> ' + live.map(function (r) { return esc(r.name) + ' ' + money(r.mcap_usd); }).join(' \u00b7 ');
     el.hidden = false;
   }
-
   if (HERO) {
     document.body.classList.add('hero');
     window.addEventListener('load', function () {
@@ -338,7 +300,6 @@
       renderLiveStrip();
     });
   }
-
   if (DETAIL_VIEW) {
     document.body.classList.add('detail-view');
   }
